@@ -1,4 +1,6 @@
-FROM debian:bullseye-20211220-slim
+FROM debian:buster-20211220-slim
+# Raspbian 32 bit sucks and we can't run recent versions of bullseye
+#FROM debian:bullseye-20211220-slim
 
 ENV BRANCH_RTLSDR="ed0317e6a58c098874ac58b769cf2e609c18d9a5" \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2
