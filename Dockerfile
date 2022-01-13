@@ -72,7 +72,7 @@ RUN set -x && \
         && \
     mkdir /src/ && \
     pushd /src/ && \
-    curl -o https://raw.githubusercontent.com/fredclausen/docker-acarshub/main/rootfs/webapp/requirements.txt && \
+    curl -O https://raw.githubusercontent.com/fredclausen/docker-acarshub/main/rootfs/webapp/requirements.txt && \
     python3 -m pip install --no-cache-dir \
         -r /src/requirements.txt \
         && \
