@@ -33,11 +33,6 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
 
-      # Set up QEMU for multi-arch builds
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
       # Hit an issue where arm builds would fail with cURL errors regarding intermediary certificates when downloading from github (ie: deploy-s6-overlay).
       # After many hours of troubleshooting, the workaround is to pre-load the image's rootfs with the CA certificates from the runner.
       # This problem may go away in future.
@@ -50,6 +45,11 @@ jobs:
           cp --no-dereference /etc/ssl/certs/*.crt ./rootfs/etc/ssl/certs
           cp --no-dereference /etc/ssl/certs/*.pem ./rootfs/etc/ssl/certs
           cp --no-dereference /usr/share/ca-certificates/mozilla/*.crt ./rootfs/usr/share/ca-certificates/mozilla
+
+      # Set up QEMU for multi-arch builds
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
       # Log into docker hub (so we can push images)
       -
