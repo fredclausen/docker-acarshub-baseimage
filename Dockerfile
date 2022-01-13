@@ -70,8 +70,9 @@ RUN set -x && \
         "${KEPT_PACKAGES[@]}" \
         "${TEMP_PACKAGES[@]}"\
         && \
+    curl https://raw.githubusercontent.com/fredclausen/docker-acarshub/main/rootfs/webapp/requirements.txt > /src/requirements.txt && \
     python3 -m pip install --no-cache-dir \
-        -r /webapp/requirements.txt \
+        -r /src/requirements.txt \
         && \
     # Fix for Eventlet issues
     apt-get \
