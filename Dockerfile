@@ -70,7 +70,9 @@ RUN set -x && \
         "${KEPT_PACKAGES[@]}" \
         "${TEMP_PACKAGES[@]}"\
         && \
-    curl https://raw.githubusercontent.com/fredclausen/docker-acarshub/main/rootfs/webapp/requirements.txt > /src/requirements.txt && \
+    mkdir /src/ && \
+    pushd /src/ && \
+    curl -o https://raw.githubusercontent.com/fredclausen/docker-acarshub/main/rootfs/webapp/requirements.txt && \
     python3 -m pip install --no-cache-dir \
         -r /src/requirements.txt \
         && \
@@ -80,6 +82,7 @@ RUN set -x && \
       install --reinstall --no-install-recommends -y \
       netbase \
       && \
+    popd && \
     # rtl-sdr
     git clone git://git.osmocom.org/rtl-sdr.git /src/rtl-sdr && \
     pushd /src/rtl-sdr && \
