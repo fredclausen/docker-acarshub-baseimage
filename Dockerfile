@@ -26,7 +26,7 @@ RUN set -x && \
     # curl kept for healthcheck
     # ca-certificates kept for python
     TEMP_PACKAGES+=(gnupg2) && \
-    TEMP_PACKAGES+=(file) && \
+    KEPT_PACKAGES+=(file) && \
     KEPT_PACKAGES+=(curl) && \
     KEPT_PACKAGES+=(ca-certificates) && \
     # libusb-1.0-0 + dev - Required for rtl-sdr, libiio (bladeRF/PlutoSDR).
