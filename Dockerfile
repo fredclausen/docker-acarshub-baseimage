@@ -25,7 +25,7 @@ RUN set -x && \
     # required for S6 overlay
     # curl kept for healthcheck
     # ca-certificates kept for python
-    TEMP_PACKAGES+=(gnupg2) && \
+    TEMP_PACKAGES+=(xz-utils) && \
     KEPT_PACKAGES+=(file) && \
     KEPT_PACKAGES+=(curl) && \
     KEPT_PACKAGES+=(ca-certificates) && \
