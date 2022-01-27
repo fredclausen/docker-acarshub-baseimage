@@ -1,12 +1,8 @@
 FROM ghcr.io/fredclausen/docker-baseimage:python
 # Raspbian 32 bit sucks and we can't run recent versions of bullseye
 #FROM debian:bullseye-20211220-slim
-
-ENV BRANCH_RTLSDR="ed0317e6a58c098874ac58b769cf2e609c18d9a5" \
-    S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-COPY rootfs/ /
+
 # hadolint ignore=DL3008,SC2086
 RUN set -x && \
     TEMP_PACKAGES=() && \
@@ -47,5 +43,3 @@ RUN set -x && \
     apt-get remove -y "${TEMP_PACKAGES[@]}" && \
     apt-get autoremove -y && \
     rm -rf /src/* /tmp/* /var/lib/apt/lists/*
-
-ENTRYPOINT [ "/init" ]
