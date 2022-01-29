@@ -15,13 +15,13 @@ on:
     - cron: "0 14 * * *"
 
 jobs:
-  deploy_acarshub_old_dockerhub:
-    name: Deploy ACARS Hub Old to DockerHub
+  deploy_acarshub_old_ghcr:
+    name: Deploy ACARS Hub Old to GHCR
     runs-on: ubuntu-latest
 
     # Set job-wide environment variables
-    #  - REPO: repo name on dockerhub
-    #  - IMAGE: image name on dockerhub
+    #  - REPO: repo name on GHCR
+    #  - IMAGE: image name on GHCR
     env:
       REPO: fredclausen
       IMAGE: acarshub-baseimage
@@ -29,15 +29,13 @@ jobs:
     steps:
 
       # Check out our code
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
 
       # Hit an issue where arm builds would fail with cURL errors regarding intermediary certificates when downloading from github (ie: deploy-s6-overlay).
       # After many hours of troubleshooting, the workaround is to pre-load the image's rootfs with the CA certificates from the runner.
       # This problem may go away in future.
-      -
-        name: Copy CA Certificates from GitHub Runner to Image rootfs
+      - name: Copy CA Certificates from GitHub Runner to Image rootfs
         run: |
           ls -la /etc/ssl/certs/
           mkdir -p ./rootfs/etc/ssl/certs
@@ -51,39 +49,45 @@ jobs:
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
-      # Log into docker hub (so we can push images)
-      -
-        name: Login to DockerHub
+      # Log into ghcr (so we can push images)
+      - name: Login to ghcr.io
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get metadata from repo
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       # Set up buildx for multi platform builds
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
 
       # Build "latest"
-      -
-        name: Build & Push - latest
+      - name: Build & Push - latest
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile.old
           no-cache: true
           platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64
-          push: ${{ env.PUSH }}
-          tags: ${{ env.REPO }}/${{ env.IMAGE }}:v2
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/fredclausen/acarshub-baseimage:v2
+          labels: ${{ steps.meta.outputs.labels }}
 
-  deploy_acarshub_nextgen_dockerhub:
-    name: Deploy ACARS Hub Next Gen to DockerHub
+  deploy_acarshub_nextgen_ghcr:
+    name: Deploy ACARS Hub Next Gen to GHCR
     runs-on: ubuntu-latest
 
     # Set job-wide environment variables
-    #  - REPO: repo name on dockerhub
-    #  - IMAGE: image name on dockerhub
+    #  - REPO: repo name on GHCR
+    #  - IMAGE: image name on GHCR
     env:
       REPO: fredclausen
       IMAGE: acarshub-baseimage
@@ -91,37 +95,41 @@ jobs:
     steps:
 
       # Check out our code
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
 
       # Set up QEMU for multi-arch builds
-      -
-        name: Set up QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
-      # Log into docker hub (so we can push images)
-      -
-        name: Login to DockerHub
+      # Log into ghcr (so we can push images)
+      - name: Login to ghcr.io
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get metadata from repo
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       # Set up buildx for multi platform builds
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
 
       # Build "latest"
-      -
-        name: Build & Push - latest
+      - name: Build & Push - latest
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile.nextgen
           no-cache: true
           platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64
-          push: ${{ env.PUSH }}
-          tags: ${{ env.REPO }}/${{ env.IMAGE }}:nextgen
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/fredclausen/acarshub-baseimage:nextgen
+          labels: ${{ steps.meta.outputs.labels }}
