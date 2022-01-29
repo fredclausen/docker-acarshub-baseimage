@@ -23,8 +23,8 @@ jobs:
     #  - REPO: repo name on GHCR
     #  - IMAGE: image name on GHCR
     env:
-      REPO: fredclausen
-      IMAGE: acarshub-baseimage
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
       PUSH: true
     steps:
 
@@ -89,8 +89,8 @@ jobs:
     #  - REPO: repo name on GHCR
     #  - IMAGE: image name on GHCR
     env:
-      REPO: fredclausen
-      IMAGE: acarshub-baseimage
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
       PUSH: true
     steps:
 
