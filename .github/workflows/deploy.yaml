@@ -2,6 +2,10 @@ name: Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      reason:
+        required: true
+        description: 'Reason for running this workflow'
   # Build and deploy the image on pushes to main branch
   push:
     branches:
@@ -10,76 +14,25 @@ on:
       - '**.md'
       - '**.MD'
 
-  # Build and deploy the image nightly (to ensure we pick up any security updates)
-  schedule:
-    - cron: "0 14 * * *"
+  # # Build and deploy the image nightly (to ensure we pick up any security updates)
+  # schedule:
+  #   - cron: "0 14 * * *"
 
 jobs:
-  deploy_acarshub_old_ghcr:
-    name: Deploy ACARS Hub Old to GHCR
+  test:
+    name: Triggered via Workflow Dispatch?
+    # only run this step if workflow dispatch triggered
+    # log the reason the workflow dispatch was triggered
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.reason != ''
     runs-on: ubuntu-latest
-
-    # Set job-wide environment variables
-    #  - REPO: repo name on GHCR
-    #  - IMAGE: image name on GHCR
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository }}
-      PUSH: true
     steps:
-
-      # Check out our code
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Hit an issue where arm builds would fail with cURL errors regarding intermediary certificates when downloading from github (ie: deploy-s6-overlay).
-      # After many hours of troubleshooting, the workaround is to pre-load the image's rootfs with the CA certificates from the runner.
-      # This problem may go away in future.
-      - name: Copy CA Certificates from GitHub Runner to Image rootfs
+      - name: Log dispatch reason
+        env:
+          INPUTS_REASON: ${{ github.event.inputs.reason }}
         run: |
-          ls -la /etc/ssl/certs/
-          mkdir -p ./rootfs/etc/ssl/certs
-          mkdir -p ./rootfs/usr/share/ca-certificates/mozilla
-          cp --no-dereference /etc/ssl/certs/*.crt ./rootfs/etc/ssl/certs
-          cp --no-dereference /etc/ssl/certs/*.pem ./rootfs/etc/ssl/certs
-          cp --no-dereference /usr/share/ca-certificates/mozilla/*.crt ./rootfs/usr/share/ca-certificates/mozilla
-
-      # Set up QEMU for multi-arch builds
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      # Log into ghcr (so we can push images)
-      - name: Login to ghcr.io
-        uses: docker/login-action@v1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Get metadata from repo
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      # Set up buildx for multi platform builds
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-
-      # Build "latest"
-      - name: Build & Push - latest
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile.old
-          no-cache: true
-          platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/fredclausen/acarshub-baseimage:v2
-          labels: ${{ steps.meta.outputs.labels }}
+          echo "Workflow dispatch reason: $INPUTS_REASON"
 
   deploy_acarshub_nextgen_ghcr:
     name: Deploy ACARS Hub Next Gen to GHCR
@@ -131,5 +84,5 @@ jobs:
           no-cache: true
           platforms: linux/386,linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/fredclausen/acarshub-baseimage:nextgen
+          tags: ghcr.io/sdr-enthusiasts/acarshub-baseimage:nextgen
           labels: ${{ steps.meta.outputs.labels }}
