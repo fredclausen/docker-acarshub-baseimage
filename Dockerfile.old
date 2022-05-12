@@ -1,4 +1,4 @@
-FROM debian:buster-20220125-slim
+FROM debian:buster-20220509-slim
 # Raspbian 32 bit sucks and we can't run recent versions of bullseye
 #FROM debian:bullseye-20211220-slim
 
